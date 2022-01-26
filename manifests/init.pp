@@ -119,56 +119,41 @@ class acme (
 ) {
   require acme::setup
 
-  # Is this the host to sign CSRs?
-  if ($::fqdn == $acme_host) {
+  # Validate configuration of $acme_host.
+  if !($profiles) {
+    notify { "Module ${module_name}: \$profiles must be defined!": loglevel => err }
+  }
 
-    # Validate configuration of $acme_host.
-    if !($profiles) {
-      # Cannot continue if no profile has been defined.
-      notify { "Module ${module_name}: \$profiles must be defined on \"${acme_host}\"!":
-        loglevel => err,
-      }
-    } elsif !($accounts) {
-      # Cannot continue if no account has been defined.
-      notify { "Module ${module_name}: \$accounts must be defined on \"${acme_host}\"!":
-        loglevel => err,
-      }
-    } else {
-      # Setup and register ACME accounts.
-      $acme::accounts.each |$account_email| {
-        acme::account{ $account_email:}
-      }
+  if !($accounts) {
+    notify { "Module ${module_name}: \$accounts must be defined!": loglevel => err }
+  }
 
-      # Store config for profiles in filesystem, if we support them.
-      # (Otherwise the user needs to manually create the required files.)
-      $acme::profiles.each |$profile_name, $profile_config| {
-        acme::profile{ $profile_name:
-          profile_config => $profile_config,
-        }
-      }
+  # Setup and register ACME accounts.
+  $acme::accounts.each |$account_email| {
+    acme::account{ $account_email:}
+  }
 
-      # needed for the openssl ocsp -header flag
-      $old_openssl = versioncmp($::openssl_version, '1.1.0') < 0
-
-      file { $acme::ocsp_request:
-        ensure  => file,
-        owner   => 'root',
-        group   => $acme::group,
-        mode    => '0755',
-        content => epp("${module_name}/get_certificate_ocsp.sh.epp", {
-          old_openssl => $old_openssl,
-          path        => $acme::path,
-          proxy       => $acme::proxy,
-          }),
-      }
+  # Store config for profiles in filesystem, if we support them.
+  # (Otherwise the user needs to manually create the required files.)
+  $acme::profiles.each |$profile_name, $profile_config| {
+    acme::profile{ $profile_name:
+      profile_config => $profile_config,
     }
-    # Collect certificates.
-    if ($facts['acme_crts'] and $facts['acme_crts'] != '') {
-      $acme_crts_array = split($facts['acme_crts'], ',')
-      ::acme::request::crt { $acme_crts_array: }
-    } else {
-      notify { 'got no acme_crts from facter (may need another puppet run)': }
-    }
+  }
+
+  # needed for the openssl ocsp -header flag
+  $old_openssl = versioncmp($::openssl_version, '1.1.0') < 0
+
+  file { $acme::ocsp_request:
+    ensure  => file,
+    owner   => 'root',
+    group   => $acme::group,
+    mode    => '0755',
+    content => epp("${module_name}/get_certificate_ocsp.sh.epp", {
+      old_openssl => $old_openssl,
+      path        => $acme::path,
+      proxy       => $acme::proxy,
+      }),
   }
 
   # Generate CSRs.
