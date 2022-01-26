@@ -3,6 +3,11 @@ define acme::profile (
   Hash $profile_config,
   String $profile_name = $name,
 ){
+  File {
+    owner => 'root',
+    group => 0,
+  }
+
   # Simple validation of profile config
   if ($profile_config != undef) and (type($profile_config) =~ Type[Hash]) {
     $challengetype = $profile_config['challengetype']

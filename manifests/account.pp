@@ -2,6 +2,11 @@
 define acme::account (
   String $account_email = $name
 ){
+  File {
+    owner => 'root',
+    group => 0,
+  }
+
   $account_dir = "${acme::acct_dir}/${account_email}"
 
   # Create a directory for each account.
