@@ -117,11 +117,10 @@ class acme (
   Optional[String] $proxy = undef,
   Optional[Hash] $profiles = undef
 ) {
-  require ::acme::setup::common
+  require acme::setup
 
   # Is this the host to sign CSRs?
   if ($::fqdn == $acme_host) {
-    class { '::acme::setup::puppetmaster': }
 
     # Validate configuration of $acme_host.
     if !($profiles) {
@@ -136,7 +135,7 @@ class acme (
       }
     } else {
       class { '::acme::request::handler' :
-        require => Class[::acme::setup::puppetmaster],
+        require => Class[::acme::setup],
       }
     }
     # Collect certificates.

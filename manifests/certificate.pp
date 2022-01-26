@@ -38,7 +38,7 @@ define acme::certificate (
   Integer $renew_days = $acme::renew_days,
   Optional[String] $ca = undef,
 ) {
-  require ::acme::setup::common
+  require acme::setup
 
   $domain_dc = downcase($domain)
   $path = $acme::path
