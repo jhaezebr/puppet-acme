@@ -134,6 +134,10 @@ class acme (
         loglevel => err,
       }
     } else {
+      # Setup and register ACME accounts.
+      $acme::accounts.each |$account_email| {
+        acme::account{ $account_email:}
+      }
       class { '::acme::request::handler' :
         require => Class[::acme::setup],
       }
