@@ -2,6 +2,7 @@
 #
 # @api private
 class acme::request::handler {
+  include openssl
   File {
     owner => 'root',
     group => 0,
