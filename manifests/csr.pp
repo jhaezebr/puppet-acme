@@ -189,7 +189,7 @@ define acme::csr (
   $domain_rep = regsubst($domain, /[*.-]/, {'.' => '_', '-' => '_', '*' => $acme::wildcard_marker}, 'G')
   $csr_content = pick_default(getvar("::acme_csr_${domain_rep}"), '')
   if ($csr_content =~ /CERTIFICATE REQUEST/) {
-    @@acme::request { $domain:
+    acme::request { $domain:
       csr              => $csr_content,
       tag              => "master_${acme_host}",
       altnames         => $altnames,
