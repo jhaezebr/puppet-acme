@@ -35,8 +35,11 @@ class acme::request::handler {
         'letsencrypt_test': {
           $acme_ca_compat = 'staging'
         }
-        default: {
+        'buypass', 'buypass_test', 'sslcom', 'zerossl': {
           $acme_ca_compat = $acme_ca
+        }
+        default: {
+          $acme_ca_compat = 'custom'
         }
       }
 

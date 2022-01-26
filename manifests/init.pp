@@ -99,7 +99,7 @@ class acme (
   Array $ca_whitelist,
   Hash $certificates,
   String $date_expression,
-  Enum['buypass', 'buypass_test', 'letsencrypt', 'letsencrypt_test', 'sslcom', 'zerossl'] $default_ca,
+  String $default_ca,
   Integer $dh_param_size,
   Integer $dnssleep,
   Integer $exec_timeout,

@@ -21,7 +21,7 @@ define acme::request (
   String $csr,
   String $use_account,
   String $use_profile,
-  Enum['buypass', 'buypass_test', 'letsencrypt', 'letsencrypt_test', 'sslcom', 'zerossl'] $ca = $acme::default_ca,
+  String $ca = $acme::default_ca,
   String $domain = $name,
   Integer $renew_days = $acme::renew_days,
   Boolean $ocsp_must_staple = true,
@@ -88,8 +88,11 @@ define acme::request (
     'letsencrypt_test': {
       $ca_compat = 'staging'
     }
-    default: {
+    'buypass', 'buypass_test', 'sslcom', 'zerossl': {
       $ca_compat = $ca
+    }
+    default: {
+      $ca_compat = 'custom'
     }
   }
 
