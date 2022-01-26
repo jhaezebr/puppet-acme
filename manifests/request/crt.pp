@@ -30,7 +30,7 @@ define acme::request::crt (
   $chain = pick_default($facts["acme_ca_${domain_rep}"], '')
 
   if ($crt =~ /BEGIN CERTIFICATE/) {
-    @@acme::deploy::crt { $domain:
+    acme::deploy::crt { $domain:
       crt_content       => "${crt}\n",
       crt_chain_content => $chain,
       ocsp_content      => $ocsp,
