@@ -138,6 +138,15 @@ class acme (
       $acme::accounts.each |$account_email| {
         acme::account{ $account_email:}
       }
+
+      # Store config for profiles in filesystem, if we support them.
+      # (Otherwise the user needs to manually create the required files.)
+      $acme::profiles.each |$profile_name, $profile_config| {
+        acme::profile{ $profile_name:
+          profile_config => $profile_config,
+        }
+      }
+
       class { '::acme::request::handler' :
         require => Class[::acme::setup],
       }
