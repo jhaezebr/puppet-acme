@@ -50,21 +50,13 @@ define acme::request (
   $fullchain_file = "${crt_dir}/${domain}/fullchain.pem"
 
   # Check if the account is actually defined.
-  $accounts = $acme::accounts
-  if ! ($use_account in $accounts) {
-    fail("Module ${module_name}: account \"${use_account}\" for cert ${domain}",
-      "is not defined on \$acme_host")
-  }
+  Acme::Account[$use_account] -> Acme::Request[$name]
   $account_email = $use_account
 
   # Check if the profile is actually defined.
+  Acme::Profile[$use_profile] -> Acme::Request[$name]
   $profiles = $acme::profiles
-  if $profiles[$use_profile] {
-    $profile = $profiles[$use_profile]
-  } else {
-    fail("Module ${module_name}: unable to find profile \"${use_profile}\" for",
-      "cert ${domain}")
-  }
+  $profile = $profiles[$use_profile]
 
   # Check if the CA is whitelisted.
   $ca_whitelist = $acme::ca_whitelist
@@ -356,7 +348,7 @@ define acme::request (
     mode   => '0644',
   }
 
-  ::acme::request::ocsp { $domain:
+  acme::request::ocsp { $domain:
     require => File[$result_crt_file],
   }
 }

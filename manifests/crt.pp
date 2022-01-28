@@ -1,31 +1,32 @@
-# @summary Install a signed certificate on the target host.
-#
-# @param crt_content
-#   The actual certificate content.
-#
-# @param crt_chain_content
-#   The actual certificate chain content.
-#
-# @param ocsp_content
-#   The OCSP data when the OCSP Must-Staple extension is enabled,
-#   otherwise empty.
-#
-# @param domain
-#   The certificate commonname / domainname.
-#
-# @api private
-define acme::deploy::crt (
-  String $crt_content,
-  String $crt_chain_content,
-  String $domain = $name,
-  Optional[String] $ocsp_content = undef,
-) {
-  $cfg_dir = $acme::cfg_dir
+# request crt using acme.sh
+define acme::crt (
+  String $domain = $name
+){
+  # acme.sh configuration
+  $acme_dir = $acme::acme_dir
   $crt_dir = $acme::crt_dir
+  $results_dir = $acme::results_dir
+  $ocsp_file = "${results_dir}/${domain}.ocsp"
+  $cfg_dir = $acme::cfg_dir
   $key_dir = $acme::key_dir
-
   $user = $acme::user
   $group = $acme::group
+
+  # Places where acme.sh stores the resulting certificate.
+  $le_crt_file = "${acme_dir}/${domain}/${domain}.cer"
+  $le_chain_file = "${acme_dir}/${domain}/ca.cer"
+  $le_fullchain_file = "${acme_dir}/${domain}/fullchain.cer"
+
+  # Avoid special characters (required for wildcard certs)
+  $domain_rep = regsubst($domain, /[*.-]/, {'.' => '_', '-' => '_', '*' => $acme::wildcard_marker}, 'G')
+  $domain_tag = regsubst($domain, /[*]/, $acme::wildcard_marker, 'G')
+
+  $crt = pick_default($facts["acme_crt_${domain_rep}"], '')
+
+  # special handling for ocsp stuff (binary data)
+  $ocsp_content = base64('encode', file_or_empty_string($ocsp_file))
+
+  $crt_chain_content = pick_default($facts["acme_ca_${domain_rep}"], '')
 
   # Bring back special characters (required for wildcard certs)
   $real_domain = regsubst($domain, $acme::wildcard_marker, '*', 'G')
@@ -42,7 +43,7 @@ define acme::deploy::crt (
     ensure  => file,
     owner   => 'root',
     group   => $group,
-    content => $crt_content,
+    content => "${crt}\n",
     mode    => '0644',
   }
 
@@ -88,7 +89,7 @@ define acme::deploy::crt (
 
   concat::fragment { "${real_domain}_crt":
     target  => $crt_full_chain,
-    content => $crt_content,
+    content => "${crt}\n",
     order   => '10',
   }
 

@@ -38,8 +38,6 @@ define acme::certificate (
   Integer $renew_days = $acme::renew_days,
   Optional[String] $ca = undef,
 ) {
-  require acme::setup
-
   $domain_dc = downcase($domain)
   $path = $acme::path
 
@@ -50,13 +48,8 @@ define acme::certificate (
     refreshonly => true,
   }
 
-  # Collect and install signed certificates.
-  ::acme::deploy { $domain_dc:
-    acme_host => $acme_host,
-  } ~> Exec["posthook_${name}"]
-
   # Generate CSRs.
-  ::acme::csr { $domain_dc:
+  acme::csr { $domain_dc:
     use_account      => $use_account,
     use_profile      => $use_profile,
     acme_host        => $acme_host,
@@ -65,4 +58,6 @@ define acme::certificate (
     renew_days       => $renew_days,
     ca               => $ca,
   }
+  -> acme::crt { $domain: }
+  -> Exec["posthook_${name}"]
 }
