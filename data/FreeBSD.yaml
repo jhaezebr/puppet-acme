@@ -1,3 +1,0 @@
----
-acme::date_expression: "date -v-1d '+%s'"
-acme::stat_expression: "stat -f '%m'"
