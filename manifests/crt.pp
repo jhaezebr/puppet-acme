@@ -21,7 +21,7 @@ define acme::crt (
   $domain_rep = regsubst($domain, /[*.-]/, {'.' => '_', '-' => '_', '*' => $acme::wildcard_marker}, 'G')
   $domain_tag = regsubst($domain, /[*]/, $acme::wildcard_marker, 'G')
 
-  $crt = pick_default($facts["acme_crt_${domain_rep}"], '')
+  $crt_content = pick_default($facts["acme_crt_${domain_rep}"], '')
 
   # special handling for ocsp stuff (binary data)
   $ocsp_content = base64('encode', file_or_empty_string($ocsp_file))
@@ -43,7 +43,7 @@ define acme::crt (
     ensure  => file,
     owner   => 'root',
     group   => $group,
-    content => "${crt}\n",
+    content => "${crt_content}\n",
     mode    => '0644',
   }
 
@@ -89,7 +89,7 @@ define acme::crt (
 
   concat::fragment { "${real_domain}_crt":
     target  => $crt_full_chain,
-    content => "${crt}\n",
+    content => "${crt_content}\n",
     order   => '10',
   }
 
